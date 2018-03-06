@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>OKR Summarizer</title>
+		<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+        <link rel="stylesheet" href="index.css">
+	</head>
+	<body>
+
+        {% macro labelMacro(data) -%}
+            <span class="label" style="background-color: #{{ data.color }}">{{ data.name }}</span>
+        {%- endmacro %}
+
+        <div class="container header">
+            <h2>OKR Management Summaries</h2>
+        </div>
+
+        <hr>
+        <div class="container">
+            {% for repo in repos %}
+                <h3>{{ repo.name }}</h3>
+                <p><a href="{{ repo.html_url }}" class="github"></a> {{ repo.description }}</p>
+                <p><a class="btn btn-success" href="{{ repo.name }}.html">Summary</a></p>
+
+            {% endfor %}
+        </div>
+
+        <hr>
+        <div class="container">
+            <p>Source on <a href="https://github.com/andymckay/okr-summary">github</a>.</p>
+        </div>
+    </body>
+</html>
