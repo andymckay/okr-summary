@@ -1,0 +1,6 @@
+{
+    "repos": [
+        "mozilla/activity-stream-okrs",
+        "mozilla-services/push-okr"
+    ]
+}

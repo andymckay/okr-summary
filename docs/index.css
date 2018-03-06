@@ -7,3 +7,22 @@
 td {
     padding: 0.3em;
 }
+
+a.github::before {
+    background-image: url("github-icon.svg");
+    content: " ";
+    width: 16px;
+    height: 16px;
+    vertical-align: -3px;
+    margin-right: 4px;
+    display: inline-block;
+}
+
+img.avatar {
+    width: 16px;
+    height: 16px;
+}
+
+span.date {
+    border-bottom: 1px dotted grey;
+}

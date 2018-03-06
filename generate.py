@@ -7,9 +7,12 @@ from datetime import datetime
 
 from jinja2 import Environment, FileSystemLoader
 
+all_repos = []
+
 
 def parse_date(date):
     return datetime.strptime(date[:-1], '%Y-%m-%dT%H:%M:%S') #2018-02-09T18:28:39Z')
+
 
 def set_cache(url, result):
     filename = os.path.join('cache', url_hash(url) + '.json')
@@ -22,10 +25,12 @@ def get_cache(url):
         print 'Using cache: {}'.format(filename)
         return json.load(open(filename, 'r'))
 
+
 def url_hash(url):
     hsh = hashlib.md5()
     hsh.update(url)
     return hsh.hexdigest()
+
 
 def get(url):
     root = 'https://api.github.com'
@@ -36,7 +41,8 @@ def get(url):
     if cached:
         return cached
 
-    token = os.getenv("GITHUB_TOKEN", 'e1f89827a30093f3ba507a199c4c989730ca680b')
+    token = os.getenv("GITHUB_OKR_TOKEN", None)
+    assert token, "Specify a token in the GITHUB_OKR_TOKEN environment variable."
     accept = 'application/vnd.github.inertia-preview+json'
     if 'timeline' in url:
         accept = 'application/vnd.github.mockingbird-preview'
@@ -47,15 +53,20 @@ def get(url):
     set_cache(url, res_json)
     return res_json
 
-projects_data = {}
 
 def base_url(owner, repo):
     return '/repos/{}/{}'.format(owner, repo)
 
+
+def get_repo(owner, repo):
+    return get(base_url(owner, repo))
+
+
 def get_data(owner, repo):
+    projects_data = {}
     projects = get(base_url(owner, repo) + '/projects')
     for project in projects:
-   
+
         this_project = {
             'project': project,
             'columns': {},
@@ -97,12 +108,26 @@ def get_data(owner, repo):
 
         projects_data[project['id']] =  this_project
 
+    return projects_data
 
-get_data('mozilla', 'activity-stream-okrs')
 
+data = json.load(open('config.json', 'r'))
+for repo in data['repos']:
+    org, name = repo.split('/')
+    projects_data = get_data(org, name)
+    all_repos.append(get_repo(org, name))
+
+    env = Environment(loader=FileSystemLoader('.'))
+    template = env.get_template('project-template.html')
+
+    context = {"projects_data": projects_data}
+    html = template.render(context)
+    open('docs/{}.html'.format(name), 'w').write(html.encode('utf-8'))
+
+# Write out an index.html.
 env = Environment(loader=FileSystemLoader('.'))
-template = env.get_template('template.html')
+template = env.get_template('index-template.html')
 
-context = {"projects_data": projects_data}
+context = {"repos": all_repos}
 html = template.render(context)
 open('docs/index.html', 'w').write(html.encode('utf-8'))
