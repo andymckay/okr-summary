@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>OKR Summarizer</title>
+		<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+        <link rel="stylesheet" href="index.css">
+	</head>
+	<body>
+
+        {% macro labelMacro(data) -%}
+            <span class="label" style="background-color: #{{ data.color }}">{{ data.name }}</span>
+        {%- endmacro %}
+
+        <div class="container">
+            <h2>OKR Management Summaries</h2>
+            {% for project_id, project_data in projects_data.items() %}
+                <h3><a href="{{ project_data.project.html_url }}">{{ project_data.project.name }}</a></h3>
+                <p class="muted"><a href="#{{ project_data.project.id }}" id="{{ project_data.project.id }}">Anchor</a></p>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Timeline</th>
+                    </tr>
+                    </thead>
+                <tbody>
+                    {% for card_title, card_url in project_data.contents_order %}
+                        <tr>
+                        {% set content = project_data.contents[card_url] %}
+                            <td>
+                                <a href="{{ content.html_url }}">{{ content.title }}</a>
+                                <p><a href="{{ content.assignee.html_url }}">{{ content.assignee.login }}</a></p>
+                                <p>{{ content.body }}</p>
+                            </td>
+                            <td>
+                                {% set timeline_changes = project_data.timeline_changes[content['timeline_url']] %}
+                                <table>
+                                    <tr>
+                                        <th>Current status</th>
+                                        <td>{% for label in content.labels %}
+                                                {{ labelMacro(label)}}
+                                            {% endfor %}
+                                        </td>
+                                    </tr>
+                                    {% for line in timeline_changes %}
+                                        <tr>
+                                            {% if line.event == 'labeled' %}
+                                                <td><a href="{{ line.html_url }}">Label added</a></a> 
+                                                    ({{ line.created_at.strftime('%Y-%m-%d') }})</td>
+                                                <td>{{ labelMacro(line.label)}}</td>
+                                            {% endif %}
+                                            {% if line.event == 'commented' %}
+                                                <td><a href="{{ line.html_url }}">Commented</a>
+                                                    ({{ line.created_at.strftime('%Y-%m-%d') }})</td>
+                                                <td>{{ line.body }}</td>
+                                            {% endif %}
+                                        </tr>
+                                        {% endfor %}
+                                </table>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>    
+                </table>
+
+            {% endfor %}
+        </div>
+    </body>
+</html>
