@@ -10,6 +10,12 @@ from jinja2 import Environment, FileSystemLoader
 all_repos = []
 all_projects = {}
 
+if os.getenv('OKR_READ_CACHE'):
+    # This is much faster and helpful for development.
+    print 'Note: using the built-in cached queries because OKR_READ_CACHE is set.'
+else:
+    print 'Note: NOT using cached queries.'
+
 
 def parse_date(date):
     return datetime.strptime(date[:-1], '%Y-%m-%dT%H:%M:%S') #2018-02-09T18:28:39Z')
@@ -31,7 +37,7 @@ def set_cache(url, result):
 
 def get_cache(url):
     filename = os.path.join('cache', url_hash(url) + '.json')
-    if os.path.exists(filename):
+    if os.getenv('OKR_READ_CACHE') and os.path.exists(filename):
         return json.load(open(filename, 'r'))
 
 
@@ -76,6 +82,9 @@ def get_data(owner, repo):
     url = join(owner, repo)
     projects = get(join('repos', url, 'projects'))
     for project in projects:
+        if project['state'] == 'closed':
+            continue
+
         all_projects.setdefault(url, [])
         all_projects[url].append(project)
 
@@ -124,6 +133,7 @@ def get_data(owner, repo):
     all_projects[url] = reversed(all_projects[url])
     return projects_data
 
+now = datetime.now()
 
 data = json.load(open('config.json', 'r'))
 for repo in data['repos']:
@@ -135,7 +145,7 @@ for repo in data['repos']:
     env.filters['contrast'] = contrast
     template = env.get_template('project-template.html')
 
-    context = {"projects_data": projects_data}
+    context = {"projects_data": projects_data, "now": now}
     html = template.render(context)
     open('docs/{}.html'.format(name), 'w').write(html.encode('utf-8'))
 
@@ -143,5 +153,5 @@ for repo in data['repos']:
 env = Environment(loader=FileSystemLoader('.'))
 env.filters['contrast'] = contrast
 template = env.get_template('index-template.html')
-html = template.render({"repos": all_repos, "projects": all_projects})
+html = template.render({"repos": all_repos, "projects": all_projects, "now": now})
 open('docs/index.html', 'w').write(html.encode('utf-8'))
