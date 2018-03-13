@@ -10,72 +10,66 @@
 	<body>
 
         {% macro labelMacro(data) -%}
-            <span class="label" style="background-color: #{{ data.color }}">{{ data.name }}</span>
+            <a href="{{ data.html_url }}" class="label-block">
+                <span class="label" style="background-color: #{{ data.label.color }}; color: {{ data.label.color|contrast }}">{{ data.label.name.split(' Confidence')[0] }}</span>
+                <br>
+                <span class="date" title="{{ data.created_at.strftime('%Y-%m-%d') }}">{{ data.created_at.strftime('%Y-%m-%d') }}</span>
+            </a>
         {%- endmacro %}
 
         <div class="container">
             <h2>OKR Management Summaries</h2>
             <p><a href="index.html">Back to home page</a></p>
+        </div>
+        
             {% for project_id, project_data in projects_data.items() %}
+                <div class="container project">
                 <h3><a id="project-{{ project_data.project.id }}"></a>{{ project_data.project.name }}</h3>
                 <p>
                     <a href="{{ project_data.project.html_url }}" class="github">OKRs on GitHub</a> 
-                    &bull; <a href="#project-{{ project_data.project.id }}">anchor</a>
+                    <a class="anchor" href="#project-{{ project_data.project.id }}">#</a>
                 </p>
+                </div>
 
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Timeline</th>
-                    </tr>
-                    </thead>
-                <tbody>
+                <div class="container">
                     {% for card_title, card_url in project_data.contents_order %}
-                        <tr class="okr-row">
+                        <div class="row">
                         {% set content = project_data.contents[card_url] %}
-                            <td>
-                                <b>
-                                    <a id="content-{{ content.id }}" href="{{ content.html_url }}" class="github">{{ content.title }}</a>
-                                </b>
+                            <div class="col-md-6">
+                                
+                                <h3>{{ content.title }}</h3>
+                                <p>
+                                    <a id="content-{{ content.id }}" href="{{ content.html_url }}" class="github">GitHub</a> &bull;
+                                    <a class="anchor" href="#content-{{ content.id }}">#</a>
+                                </p>
                                 <p>
                                     <a href="{{ content.assignee.html_url }}" class="github">
                                     <img src="{{ content.assignee.avatar_url }}" class="avatar">
                                     {{ content.assignee.login }}</a>
-                                    &bull; <a href="#content-{{ content.id }}">anchor</a>
                                 </p>
-                                <p>{{ content.body }}</p>
-                            </td>
-                            <td>
+                                <p class="markdown">{{ content.body }}</p>
+                            </div>
+                            <div class="col-md-6">
                                 {% set timeline_changes = project_data.timeline_changes[content['timeline_url']] %}
-                                <table>
-                                    <tr>
-                                        <th>Current status</th>
-                                        <td>{% for label in content.labels %}
-                                                {{ labelMacro(label)}}
-                                            {% endfor %}
-                                        </td>
-                                    </tr>
-                                    {% for line in timeline_changes %}
-                                        <tr>
-                                            {% if line.event == 'labeled' %}
-                                                <td><a href="{{ line.html_url }}" class="github">Label added</a></a> 
-                                                    (<span class="date" title="{{ line.created_at.strftime('%Y-%m-%d') }}">{{ line.created_at.strftime('%Y-%m-%d') }}</span>)</td>
-                                                <td>{{ labelMacro(line.label)}}</td>
-                                            {% endif %}
-                                            {% if line.event == 'commented' %}
-                                                <td><a href="{{ line.html_url }}" class="github">Commented</a>
-                                                    (<span class="date" title="{{ line.created_at.strftime('%Y-%m-%d') }}">{{ line.created_at.strftime('%Y-%m-%d') }}</span>)</td>
-                                                <td>{{ line.body }}</td>
-                                            {% endif %}
-                                        </tr>
-                                        {% endfor %}
-                                </table>
-                            </td>
-                        </tr>
+                                {% for line in timeline_changes %}
+                                    {% if line.event == 'labeled' %}
+                                        {{ labelMacro(line)}}
+                                    {% endif %}
+                                {% endfor %}
+        
+                                {% for line in timeline_changes %}
+                                    <p class="markdown">
+                                        {% if line.event == 'commented' %}
+                                            <a href="{{ line.html_url }}" class="github">Comment</a>
+                                                (<span class="date" title="{{ line.created_at.strftime('%Y-%m-%d') }}">{{ line.created_at.strftime('%Y-%m-%d') }}</span>)
+                                            {{ line.body }}
+                                        {% endif %}
+                                    </p>
+                                {% endfor %}
+                            </div>
+                        </div>
                     {% endfor %}
-                </tbody>    
-                </table>
+                </div>
 
             {% endfor %}
         </div>

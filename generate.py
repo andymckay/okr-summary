@@ -8,10 +8,20 @@ from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
 
 all_repos = []
+all_projects = {}
 
 
 def parse_date(date):
     return datetime.strptime(date[:-1], '%Y-%m-%dT%H:%M:%S') #2018-02-09T18:28:39Z')
+
+
+def contrast(color):
+    r, g, b = color[:2], color[2:4], color[4:]
+    total = (int(r, 16) * 255 + int(g, 16) * 587 + int(b, 16) * 114) / 1000
+    if total > 123:
+        return 'black'
+    else:
+        return 'white'
 
 
 def set_cache(url, result):
@@ -22,7 +32,6 @@ def set_cache(url, result):
 def get_cache(url):
     filename = os.path.join('cache', url_hash(url) + '.json')
     if os.path.exists(filename):
-        print 'Using cache: {}'.format(filename)
         return json.load(open(filename, 'r'))
 
 
@@ -33,7 +42,7 @@ def url_hash(url):
 
 
 def get(url):
-    root = 'https://api.github.com'
+    root = 'https://api.github.com/'
     if (not url.startswith(root)):
         url = root + url
     
@@ -54,18 +63,21 @@ def get(url):
     return res_json
 
 
-def base_url(owner, repo):
-    return '/repos/{}/{}'.format(owner, repo)
+def join(*args):
+    return '/'.join(args)
 
 
 def get_repo(owner, repo):
-    return get(base_url(owner, repo))
+    return get(join('repos', owner, repo))
 
 
 def get_data(owner, repo):
     projects_data = {}
-    projects = get(base_url(owner, repo) + '/projects')
+    url = join(owner, repo)
+    projects = get(join('repos', url, 'projects'))
     for project in projects:
+        all_projects.setdefault(url, [])
+        all_projects[url].append(project)
 
         this_project = {
             'project': project,
@@ -87,9 +99,9 @@ def get_data(owner, repo):
                     contents = get(card['content_url'])
                     this_project['contents_order'].append([contents['title'], contents['url']])
                     
-                    timeline_url = base_url(owner, repo) + '/issues/{}/timeline'.format(contents['number'])
+                    timeline_url = join('repos', owner, repo, 'issues', str(contents['number']), 'timeline')
                     contents['timeline_url'] = timeline_url
-                    contents['body'] = contents['body'][:40] + '...' 
+                    contents['body'] = markdown.markdown(contents['body'])
 
                     this_project['contents'][contents['url']] = contents
                     
@@ -99,15 +111,17 @@ def get_data(owner, repo):
                         if line['event'] in ('labeled', 'commented'):
                             line['created_at'] = parse_date(line['created_at'])
                             if 'body' in line:
-                                line['body'] = line['body'][:80] + '...' 
-                            timeline_changes.append(line)
+                                line['body'] = markdown.markdown(line['body'])
 
-                    this_project['timeline_changes'][timeline_url] = reversed(timeline_changes[:-1])
+                        timeline_changes.append(line)
+
+                    this_project['timeline_changes'][timeline_url] = timeline_changes[:-1]
 
             this_project['contents_order'] = sorted(this_project['contents_order'])
 
         projects_data[project['id']] =  this_project
 
+    all_projects[url] = reversed(all_projects[url])
     return projects_data
 
 
@@ -118,6 +132,7 @@ for repo in data['repos']:
     all_repos.append(get_repo(org, name))
 
     env = Environment(loader=FileSystemLoader('.'))
+    env.filters['contrast'] = contrast
     template = env.get_template('project-template.html')
 
     context = {"projects_data": projects_data}
@@ -126,8 +141,7 @@ for repo in data['repos']:
 
 # Write out an index.html.
 env = Environment(loader=FileSystemLoader('.'))
+env.filters['contrast'] = contrast
 template = env.get_template('index-template.html')
-
-context = {"repos": all_repos}
-html = template.render(context)
+html = template.render({"repos": all_repos, "projects": all_projects})
 open('docs/index.html', 'w').write(html.encode('utf-8'))

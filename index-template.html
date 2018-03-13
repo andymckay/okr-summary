@@ -22,8 +22,12 @@
             {% for repo in repos %}
                 <h3>{{ repo.name }}</h3>
                 <p><a href="{{ repo.html_url }}" class="github"></a> {{ repo.description }}</p>
-                <p><a class="btn btn-success" href="{{ repo.name }}.html">Summary</a></p>
-
+                {% set okr_projects = projects[repo['full_name']] %}
+                <div class="projects">
+                    {% for project in okr_projects %}
+                        <a class="label label-info label-block" href="{{ repo.name }}.html#project-{{ project.id }}">{{ project.name }}</a>
+                    {% endfor %}
+                </div>
             {% endfor %}
         </div>
 

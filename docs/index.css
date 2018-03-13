@@ -1,7 +1,8 @@
 .label {
     font-weight: bold;
-    color: black;
-    text-shadow: 1px 1px 2px white;
+    font-size: 1em;
+    padding-left: 1em;
+    padding-right: 1em;
 }
 
 td {
@@ -18,6 +19,11 @@ a.github::before {
     display: inline-block;
 }
 
+h3 {
+    padding-top: 0;
+    margin-top: 0;
+}
+
 img.avatar {
     width: 16px;
     height: 16px;
@@ -25,4 +31,42 @@ img.avatar {
 
 span.date {
     border-bottom: 1px dotted grey;
+}
+
+.label-block {
+    display: inline-block;
+    margin-right: 1em;
+    padding: 0.3em;
+    margin-bottom: 0.3em;
+}
+
+span.date {
+    font-size: 0.8em;
+}
+
+.anchor {
+    color: gray;
+}
+
+img {
+    width: 100px;
+}
+
+.row {
+    padding-top: 3em;
+    padding-bottom: 3em;
+    border-bottom: 1px solid grey;
+}
+
+project {
+    margin-top: 0;
+    border-top: 1em;
+}
+
+.projects > a:first-child {
+    background-color: #5cb85c;
+}
+
+.projects > a:first-child:hover {
+    background-color: #4cae4c;
 }
