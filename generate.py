@@ -133,7 +133,6 @@ def get_data(owner, repo):
     all_projects[url] = reversed(all_projects[url])
     return projects_data
 
-now = datetime.now()
 
 data = json.load(open('config.json', 'r'))
 for repo in data['repos']:
@@ -145,7 +144,7 @@ for repo in data['repos']:
     env.filters['contrast'] = contrast
     template = env.get_template('project-template.html')
 
-    context = {"projects_data": projects_data, "now": now}
+    context = {"projects_data": projects_data}
     html = template.render(context)
     open('docs/{}.html'.format(name), 'w').write(html.encode('utf-8'))
 
@@ -153,5 +152,5 @@ for repo in data['repos']:
 env = Environment(loader=FileSystemLoader('.'))
 env.filters['contrast'] = contrast
 template = env.get_template('index-template.html')
-html = template.render({"repos": all_repos, "projects": all_projects, "now": now})
+html = template.render({"repos": all_repos, "projects": all_projects})
 open('docs/index.html', 'w').write(html.encode('utf-8'))
