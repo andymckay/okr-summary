@@ -122,13 +122,13 @@ def get_data(owner, repo):
                             if 'body' in line:
                                 line['body'] = markdown.markdown(line['body'])
 
-                        timeline_changes.append(line)
+                            timeline_changes.append(line)
 
                     this_project['timeline_changes'][timeline_url] = timeline_changes[:-1]
 
             this_project['contents_order'] = sorted(this_project['contents_order'])
 
-        projects_data[project['id']] =  this_project
+        projects_data[project['id']] = this_project
 
     all_projects[url] = reversed(all_projects[url])
     return projects_data

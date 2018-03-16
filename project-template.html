@@ -27,7 +27,7 @@
                 <h3><a id="project-{{ project_data.project.id }}"></a>{{ project_data.project.name }}</h3>
                 <p>
                     <a href="{{ project_data.project.html_url }}" class="github">OKRs on GitHub</a> 
-                    <a class="anchor" href="#project-{{ project_data.project.id }}">#</a>
+                    &bull; <a class="anchor" href="#project-{{ project_data.project.id }}">#</a>
                 </p>
                 </div>
 
@@ -43,19 +43,48 @@
                                     <a class="anchor" href="#content-{{ content.id }}">#</a>
                                 </p>
                                 <p>
-                                    <a href="{{ content.assignee.html_url }}" class="github">
-                                    <img src="{{ content.assignee.avatar_url }}" class="avatar">
-                                    {{ content.assignee.login }}</a>
+                                    {% if content.assignee %}
+                                        <a href="{{ content.assignee.html_url }}" class="github">
+                                        <img src="{{ content.assignee.avatar_url }}" class="avatar">
+                                        {{ content.assignee.login }}</a>
+                                    {% else %}
+                                        Unassigned
+                                    {% endif %} 
                                 </p>
                                 <p class="markdown">{{ content.body }}</p>
                             </div>
                             <div class="col-md-6">
                                 {% set timeline_changes = project_data.timeline_changes[content['timeline_url']] %}
-                                {% for line in timeline_changes %}
-                                    {% if line.event == 'labeled' %}
-                                        {{ labelMacro(line)}}
-                                    {% endif %}
-                                {% endfor %}
+                                {% if timeline_changes|length %}
+                                    <p>
+                                        <b class="title">Confidence:</b>
+                                        {% for line in timeline_changes %}
+                                            {% if line.event == 'labeled' %}
+                                                {{ labelMacro(line)}}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </p>
+                                {% endif %}
+
+                                {% if content.milestone %}
+                                    <p>
+                                        <b class="title">Milestone:</b>
+                                        <a href="{{ content.milestone.html_url }}" class="github">
+                                        {{ content.milestone.title }}
+                                        </a>
+                                        <span class="date">{{ content.milestone.due_on }}</span>
+                                    </p>
+                                    <p>
+                                        <div class="label-block">
+                                            <span class="label label-danger">{{ content.milestone.open_issues }}</span>
+                                            Open
+                                        </div>
+                                        <div class="label-block">
+                                            <span class="label label-success">{{ content.milestone.closed_issues }}</span>
+                                            Closed
+                                        </div>
+                                    </p>
+                                {% endif %}
         
                                 {% for line in timeline_changes %}
                                     <p class="markdown">

@@ -79,3 +79,7 @@ project {
 .projects > a:first-child:hover {
     background-color: #4cae4c;
 }
+
+b.title {
+    vertical-align: top;
+}
