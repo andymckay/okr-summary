@@ -13,7 +13,7 @@
             <a href="{{ data.html_url }}" class="label-block">
                 <span class="label" style="background-color: #{{ data.label.color }}; color: {{ data.label.color|contrast }}">{{ data.label.name.split(' Confidence')[0] }}</span>
                 <br>
-                <span class="date" title="{{ data.created_at.strftime('%Y-%m-%d') }}">{{ data.created_at.strftime('%Y-%m-%d') }}</span>
+                <span class="date" title="{{ data.created_at.strftime('%Y-%m-%d %H:%M:%SZ') }}">{{ data.created_at.strftime('%Y-%m-%d %H:%M:%SZ') }}</span>
             </a>
         {%- endmacro %}
 
@@ -90,7 +90,7 @@
                                     <p class="markdown">
                                         {% if line.event == 'commented' %}
                                             <a href="{{ line.html_url }}" class="github">Comment</a>
-                                                (<span class="date" title="{{ line.created_at.strftime('%Y-%m-%d') }}">{{ line.created_at.strftime('%Y-%m-%d') }}</span>)
+                                                (<span class="date" title="{{ line.created_at.strftime('%Y-%m-%d %H:%M:%SZ') }}">{{ line.created_at.strftime('%Y-%m-%d %H:%M:%SZ') }}</span>)
                                             {{ line.body }}
                                         {% endif %}
                                     </p>
@@ -106,11 +106,10 @@
         <script style="text/javascript">
             function update() {
               for (let zone of document.getElementsByClassName(["date"])) {
-                zone.innerText = moment(zone.innerText, "YYYY-MM-DD").fromNow()
+                zone.innerText = moment(zone.innerText).fromNow()
               }
             };
             update();
           </script>
-      
     </body>
 </html>
