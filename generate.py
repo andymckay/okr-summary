@@ -1,5 +1,5 @@
 import requests
-import markdown
+import gfm
 import hashlib
 import json
 import os
@@ -9,6 +9,8 @@ from jinja2 import Environment, FileSystemLoader
 
 all_repos = []
 all_projects = {}
+# Since milestones can cross projects, let's seperate them out.
+all_milestones = {}
 
 if os.getenv('OKR_READ_CACHE'):
     # This is much faster and helpful for development.
@@ -29,6 +31,19 @@ def contrast(color):
     else:
         return 'white'
 
+
+def summarize(milestone):
+    issues = {'open': 0, 'closed': 0, 'total': 0, 'percent': 0}
+    for issue in milestone['items']:
+        issues['total'] += 1
+        if issue['state'] == 'open':
+            issues['open'] += 1
+        elif issue['state'] == 'closed':
+            issues['closed'] += 1
+
+    if issues['total']:
+        issues['percent'] = int(issues['closed']/float(issues['total'])*100)
+    return issues 
 
 def set_cache(url, result):
     filename = os.path.join('cache', url_hash(url) + '.json')
@@ -110,7 +125,7 @@ def get_data(owner, repo):
                     
                     timeline_url = join('repos', owner, repo, 'issues', str(contents['number']), 'timeline')
                     contents['timeline_url'] = timeline_url
-                    contents['body'] = markdown.markdown(contents['body'])
+                    contents['body'] = gfm.markdown(contents['body'])
 
                     this_project['contents'][contents['url']] = contents
                     
@@ -120,11 +135,17 @@ def get_data(owner, repo):
                         if line['event'] in ('labeled', 'commented'):
                             line['created_at'] = parse_date(line['created_at'])
                             if 'body' in line:
-                                line['body'] = markdown.markdown(line['body'])
+                                line['body'] = gfm.markdown(line['body'])
 
                             timeline_changes.append(line)
 
                     this_project['timeline_changes'][timeline_url] = timeline_changes[:-1]
+                    
+                    if contents['milestone'] and contents['milestone']['id'] not in all_milestones:
+                        milestone_url = join('search', 'issues') + '?q=milestone:"{}"'.format(contents['milestone']['title'])
+                        milestone = get(milestone_url)
+                        milestone['issue_summary'] = summarize(milestone)
+                        all_milestones[contents['milestone']['id']] = milestone
 
             this_project['contents_order'] = sorted(this_project['contents_order'])
 
@@ -144,9 +165,10 @@ for repo in data['repos']:
     env.filters['contrast'] = contrast
     template = env.get_template('project-template.html')
 
-    context = {"projects_data": projects_data}
+    context = {"projects_data": projects_data, "milestones_data": all_milestones}
     html = template.render(context)
     open('docs/{}.html'.format(name), 'w').write(html.encode('utf-8'))
+
 
 # Write out an index.html.
 env = Environment(loader=FileSystemLoader('.'))

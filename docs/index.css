@@ -56,6 +56,36 @@ img {
     width: 100px;
 }
 
+.markdown h1 {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.markdown h2 {
+    font-size: 1.4em;
+    font-weight: bold;
+} 
+
+.markdown h3 {
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+.markdown h4 {
+    font-size: 1.2em;
+    font-weight: bold;
+} 
+
+.markdown h5 {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.markdown h6 {
+    font-size: 1em;
+    font-weight: bold;
+}
+
 .row {
     padding-top: 3em;
     padding-bottom: 3em;

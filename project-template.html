@@ -51,7 +51,7 @@
                                         Unassigned
                                     {% endif %} 
                                 </p>
-                                <p class="markdown">{{ content.body }}</p>
+                                <div class="markdown">{{ content.body }}</div>
                             </div>
                             <div class="col-md-6">
                                 {% set timeline_changes = project_data.timeline_changes[content['timeline_url']] %}
@@ -74,14 +74,18 @@
                                         </a>
                                         <span class="date">{{ content.milestone.due_on }}</span>
                                     </p>
+                                    {% set milestone = milestones_data[content.milestone.id] %}
                                     <p>
                                         <div class="label-block">
-                                            <span class="label label-danger">{{ content.milestone.open_issues }}</span>
+                                            <span class="label label-info">{{ milestone.issue_summary.open }}</span>
                                             Open
                                         </div>
                                         <div class="label-block">
-                                            <span class="label label-success">{{ content.milestone.closed_issues }}</span>
+                                            <span class="label label-success">{{ milestone.issue_summary.closed }}</span>
                                             Closed
+                                        </div>
+                                        <div class="label-block">
+                                            <span class="label label-primary">{{ milestone.issue_summary.percent }}% completed</span>
                                         </div>
                                     </p>
                                 {% endif %}
